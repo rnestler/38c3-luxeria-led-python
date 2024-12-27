@@ -3,6 +3,7 @@ import socket
 import struct
 import numpy as np
 import pyscreenshot as ImageGrab
+from pynput import mouse
 
 # Configuration
 UDP_IP = "151.217.243.91"  # Replace with the target IP address
@@ -11,17 +12,33 @@ WIDTH, HEIGHT = 48, 24
 GAMMA = 2.2  # Gamma correction value
 
 OY = 24
-SCALE = 2
+SCALE = 1
 
 REGION = (0, OY, WIDTH * SCALE, HEIGHT * SCALE + OY)  # Screen region (left, top, right, bottom)
 
 # Initialize UDP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
+mouse_x = 0
+mouse_y = 0
+def on_move(x, y):
+    print(x,y)
+    global mouse_x, mouse_y
+    mouse_x = x
+    mouse_y = y
+
+listener = mouse.Listener(on_move=on_move)
+listener.start()
+print('hello')
+
 try:
     while True:
         # Capture screen region
-        screenshot = ImageGrab.grab(bbox=REGION)
+        listener.wait()
+        x = mouse_x
+        y = mouse_y
+        region = (x, y, WIDTH * SCALE + x, HEIGHT * SCALE + y)
+        screenshot = ImageGrab.grab(bbox=region)
         frame = np.array(screenshot)
 
         # Resize frame to 48x24
