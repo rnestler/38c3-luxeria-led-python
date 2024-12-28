@@ -1,14 +1,19 @@
+import argparse
 import cv2
 import socket
-import struct
 import time
+import sys
 import numpy as np
 
-# Configuration
-UDP_IP = "151.217.243.91"  # Replace with the target IP address
-UDP_PORT = 54321            # Replace with the target port
-WIDTH, HEIGHT = 48, 24
-STEP_X, STEP_Y = 5, 5  # Step size for moving window
+from arguments import common_arguments
+
+parser = argparse.ArgumentParser(
+    parents=[common_arguments], description="send an image"
+)
+parser.add_argument("filename", help="Path to the image file")
+args = parser.parse_args()
+
+WIDTH, HEIGHT = args.width, args.height
 
 # Initialize UDP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -17,10 +22,10 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 IMAGE_PATH = 'space.jpg'  # Replace with the path to your image file
 # IMAGE_PATH = 'perlin.png'  # Replace with the path to your image file
 # IMAGE_PATH = 'chess.jpg'  # Replace with the path to your image file
-# IMAGE_PATH = 'chess-small.jpg'  # Replace with the path to your image file
+# IMAGE_PATH = "chess-small.jpg"  # Replace with the path to your image file
 # IMAGE_PATH = 'waldo.jpg'  # Replace with the path to your image file
 
-frame = cv2.imread(IMAGE_PATH)
+frame = cv2.imread(args.filename)
 
 if frame is None:
     print("Error: Could not load image.")
@@ -33,22 +38,22 @@ img_height, img_width, _ = frame.shape
 x, y, zoom = 0, 0, 1
 
 # initialize velocity
-dx, dy, dz = 2, 1, 0.01
+dx, dy, dz = 0.5, 0.5, 0.01
 
 scale = 1
-MAX_SCALE = 32
+MAX_SCALE = 2
 
 try:
     while True:
-        height = round(HEIGHT * scale)
-        width = round(WIDTH * scale)
+        height = HEIGHT * scale
+        width = WIDTH * scale
         # Extract moving window
-        window = frame[y:y+height, x:x+width]
+        window = frame[round(y) : round(y + height), round(x) : round(x + width)]
 
         # Handle edge cases by padding if needed
         if window.shape[0] < HEIGHT or window.shape[1] < WIDTH:
             padded_window = np.zeros((HEIGHT, WIDTH, 3), dtype=np.uint8)
-            padded_window[:window.shape[0], :window.shape[1]] = window
+            padded_window[: window.shape[0], : window.shape[1]] = window
             window = padded_window
 
         # Convert BGR to RGB
@@ -61,13 +66,13 @@ try:
         data = resized_frame.flatten().tobytes()
 
         # Send data over UDP
-        sock.sendto(data, (UDP_IP, UDP_PORT))
+        sock.sendto(data, (args.ip, args.port))
 
         # Update window position
         x += dx
         y += dy
         scale += dz
-        #print(x,y)
+        # print(x,y)
         if x + dx > (img_width - width) or x + dx < 0:
             dx = -dx
         if y + dy > (img_height - height) or y + dy < 0:
@@ -83,4 +88,3 @@ finally:
     # Release resources
     sock.close()
     print("Resources released.")
-
