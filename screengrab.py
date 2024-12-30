@@ -1,12 +1,13 @@
 import cv2
 import socket
 import struct
+import time
 import numpy as np
 import pyscreenshot as ImageGrab
 from pynput import mouse
 
 # Configuration
-UDP_IP = "151.217.243.91"  # Replace with the target IP address
+UDP_IP = "151.217.233.92"  # Replace with the target IP address
 UDP_PORT = 54321            # Replace with the target port
 WIDTH, HEIGHT = 48, 24
 GAMMA = 2.2  # Gamma correction value
@@ -49,6 +50,8 @@ try:
 
         # Send data over UDP
         sock.sendto(data, (UDP_IP, UDP_PORT))
+
+        time.sleep(0.1)
 
 except KeyboardInterrupt:
     print("Stream stopped by user.")
