@@ -18,13 +18,6 @@ WIDTH, HEIGHT = args.width, args.height
 # Initialize UDP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-# Load image from file
-IMAGE_PATH = 'space.jpg'  # Replace with the path to your image file
-# IMAGE_PATH = 'perlin.png'  # Replace with the path to your image file
-# IMAGE_PATH = 'chess.jpg'  # Replace with the path to your image file
-# IMAGE_PATH = "chess-small.jpg"  # Replace with the path to your image file
-# IMAGE_PATH = 'waldo.jpg'  # Replace with the path to your image file
-
 frame = cv2.imread(args.filename)
 
 if frame is None:
@@ -38,17 +31,18 @@ img_height, img_width, _ = frame.shape
 x, y, zoom = 0, 0, 1
 
 # initialize velocity
-dx, dy, dz = 0.5, 0.5, 0.01
+dx, dy, dz = 0.75, 0.5, 0.05
 
-scale = 1
-MAX_SCALE = 2
+scale = 2
+MAX_SCALE = 32
 
 try:
     while True:
         height = HEIGHT * scale
         width = WIDTH * scale
+
         # Extract moving window
-        window = frame[round(y) : round(y + height), round(x) : round(x + width)]
+        window = frame[int(y) : int(y + height), int(x) : int(x + width)]
 
         # Handle edge cases by padding if needed
         if window.shape[0] < HEIGHT or window.shape[1] < WIDTH:
@@ -69,8 +63,8 @@ try:
         sock.sendto(data, (args.ip, args.port))
 
         # Update window position
-        x += dx
-        y += dy
+        x += dx * ( 1+ (0.5 * (scale-1)))
+        y += dy * ( 1+ (0.5 * (scale-1)))
         scale += dz
         # print(x,y)
         if x + dx > (img_width - width) or x + dx < 0:
@@ -78,8 +72,18 @@ try:
         if y + dy > (img_height - height) or y + dy < 0:
             dy = -dy
 
+        if x < 0:
+            x = 0
+
+        if y < 0:
+            y = 0
+
         if scale < 1 or scale > MAX_SCALE:
             dz = -dz
+
+        if scale < 1:
+            scale = 1
+
         time.sleep(0.1)  # Adjust the frame rate as needed
 
 except KeyboardInterrupt:
