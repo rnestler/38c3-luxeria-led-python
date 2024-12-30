@@ -4,9 +4,12 @@ import struct
 import numpy as np
 
 # Configuration
-UDP_IP = "151.217.243.91"  # Replace with the target IP address
-UDP_PORT = 54321            # Replace with the target port
+UDP_IP = "ledsgc.luxeria.ch"
+UDP_PORT = 54321
+
 WIDTH, HEIGHT = 48, 24
+# WIDTH, HEIGHT = 110, 9
+
 GAMMA = 2.2  # Gamma correction value
 
 # Initialize UDP socket
